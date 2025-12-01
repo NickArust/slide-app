@@ -8,14 +8,12 @@ const FormSchema = z.object({
   title: z.string().min(3),
   category: z.string().min(2),
   address: z.string().min(3),
-  description: z.string().max(1000).optional(),   // <-- add this
-  lat: z.coerce.number(),
-  lng: z.coerce.number(),
+  description: z.string().max(1000).optional(),
   startsAt: z.string(),
   endsAt: z.string(),
   is18Plus: z.coerce.boolean().default(false),
-  is21Plus: z.coerce.boolean().default(false)
-})
+  is21Plus: z.coerce.boolean().default(false),
+});
 
 
 type FormData = z.infer<typeof FormSchema>
@@ -48,10 +46,6 @@ export default function CreateEventForm() {
         {...register("description")}
       />
 
-      <div className="grid grid-cols-2 gap-2">
-        <input className="rounded border p-2" placeholder="Latitude" {...register("lat")} />
-        <input className="rounded border p-2" placeholder="Longitude" {...register("lng")} />
-      </div>
       <div className="grid grid-cols-2 gap-2">
         <input type="datetime-local" className="rounded border p-2" {...register("startsAt")} />
         <input type="datetime-local" className="rounded border p-2" {...register("endsAt")} />

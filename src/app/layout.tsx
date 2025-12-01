@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <Link
               href="/create"
-              className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+              className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white hover:bg-red-800"
             >
               Create event
             </Link>

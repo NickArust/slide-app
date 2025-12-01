@@ -2,29 +2,15 @@
 
 import { useEffect, useState } from "react"
 import EventCard from "@/components/EventCard"
-import EventMap from "@/components/EventMap"
-
-type EventWithMeters = {
-  id: string
-  title: string
-  category: string
-  address: string
-  lat: number
-  lng: number
-  startsAt: string
-  endsAt: string
-  meters?: number
-}
 
 export default function HomePage() {
   const [lat, setLat] = useState<number | null>(28.5383) // Orlando default
   const [lng, setLng] = useState<number | null>(-81.3792)
   const [radius, setRadius] = useState<number>(5)
-  const [events, setEvents] = useState<EventWithMeters[]>([])
+  const [events, setEvents] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [statusMsg, setStatusMsg] = useState<string | null>(null)
-  const [addressQuery, setAddressQuery] = useState("")
-  const [debugMode, setDebugMode] = useState(false)
+  const [addressQuery, setAddressQuery] = useState("") // for step 2
 
   async function load() {
     if (lat == null || lng == null) return
@@ -35,9 +21,8 @@ export default function HomePage() {
         `/api/events/nearby?lat=${lat}&lng=${lng}&radiusMi=${radius}`
       )
       const j = await r.json()
-      const evs = (j.events ?? []) as EventWithMeters[]
-      setEvents(evs)
-      if (evs.length === 0) {
+      setEvents(j.events ?? [])
+      if ((j.events ?? []).length === 0) {
         setStatusMsg("No events found in this area. Try a larger radius.")
       }
     } catch (err) {
@@ -53,6 +38,7 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lat, lng, radius])
 
+  // STEP 1: Use browser geolocation
   function useMyLocation() {
     if (!navigator.geolocation) {
       setStatusMsg("Geolocation is not supported in this browser.")
@@ -65,6 +51,7 @@ export default function HomePage() {
         setLat(latitude)
         setLng(longitude)
         setStatusMsg("Location set from your device.")
+        // load() will be triggered by useEffect
       },
       (err) => {
         console.error(err)
@@ -76,6 +63,8 @@ export default function HomePage() {
       }
     )
   }
+
+  // STEP 2 will go here (address search); we’ll fill below.
 
   async function setLocationFromAddress() {
     if (!addressQuery.trim()) {
@@ -95,6 +84,7 @@ export default function HomePage() {
       setLat(data.lat)
       setLng(data.lng)
       setStatusMsg(`Location set to ${data.label ?? "that area"}.`)
+      // useEffect will reload events
     } catch (err) {
       console.error(err)
       setStatusMsg("Error contacting geocoding service.")
@@ -105,40 +95,28 @@ export default function HomePage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Events near you</h1>
 
-      {/* Controls card */}
+      {/* Controls */}
       <div className="space-y-3 rounded-2xl border bg-white p-4 shadow-sm">
-        {/* Debug + radius + refresh row */}
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setDebugMode((v) => !v)}
-            className="rounded border px-3 py-1 text-xs text-gray-600 hover:bg-gray-100"
-          >
-            {debugMode ? "Hide debug" : "Show debug"}
-          </button>
-
-          {debugMode && (
-            <>
-              <input
-                className="w-28 rounded border border-gray-400 bg-white p-2 text-sm"
-                type="number"
-                step="0.0001"
-                value={lat ?? ""}
-                onChange={(e) => setLat(parseFloat(e.target.value))}
-                placeholder="lat"
-              />
-              <input
-                className="w-28 rounded border border-gray-400 bg-white p-2 text-sm"
-                type="number"
-                step="0.0001"
-                value={lng ?? ""}
-                onChange={(e) => setLng(parseFloat(e.target.value))}
-                placeholder="lng"
-              />
-            </>
-          )}
-
+          <span className="text-sm font-medium">Search center:</span>
+          <input
+            className="w-28 rounded border p-2 text-sm"
+            type="number"
+            step="0.0001"
+            value={lat ?? ""}
+            onChange={(e) => setLat(parseFloat(e.target.value))}
+            placeholder="lat"
+          />
+          <input
+            className="w-28 rounded border p-2 text-sm"
+            type="number"
+            step="0.0001"
+            value={lng ?? ""}
+            onChange={(e) => setLng(parseFloat(e.target.value))}
+            placeholder="lng"
+          />
           <select
-            className="rounded border border-gray-400 bg-white p-2 text-sm"
+            className="rounded border p-2 text-sm"
             value={radius}
             onChange={(e) => setRadius(parseInt(e.target.value))}
           >
@@ -146,7 +124,6 @@ export default function HomePage() {
             <option value={10}>10 mi</option>
             <option value={25}>25 mi</option>
           </select>
-
           <button
             className="rounded border px-3 py-2 text-sm hover:bg-gray-100"
             onClick={load}
@@ -156,7 +133,7 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Use my location + address search row */}
+        {/* Use my location + address search */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -169,7 +146,7 @@ export default function HomePage() {
           <span className="text-xs text-gray-500">or</span>
 
           <input
-            className="flex-1 min-w-[180px] rounded border border-gray-400 bg-white p-2 text-sm"
+            className="flex-1 min-w-[180px] rounded border p-2 text-sm"
             placeholder="Enter an address, city, or ZIP"
             value={addressQuery}
             onChange={(e) => setAddressQuery(e.target.value)}
@@ -188,12 +165,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Map */}
-      {lat != null && lng != null && events.length > 0 && (
-        <EventMap center={{ lat, lng }} events={events} />
-      )}
-
-      {/* Events list */}
+      {/* Results */}
       <div className="grid gap-3">
         {events.map((ev) => (
           <EventCard key={ev.id} event={ev} />
