@@ -1,0 +1,169 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  PROMOTER
+  ADMIN
+}
+
+enum RsvpStatus {
+  GOING
+  INTERESTED
+  NOT_GOING
+}
+
+enum EventVisibility {
+  PUBLIC
+  FRIENDS
+  LINK
+}
+
+enum PromoStatus {
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum SubTier {
+  FREE
+  PREMIUM_USER
+  PREMIUM_PROMOTER
+}
+
+model User {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+  email         String      @unique
+  name          String?
+  role          UserRole    @default(USER)
+  profile       Profile?
+  events        Event[]     @relation("EventCreator")
+  rsvps         RSVP[]
+  subscriptions Subscription[]
+  accounts      Account[]
+  sessions      Session[]
+  buisnesses	Business[]
+}
+
+model Profile {
+  userId   String @id
+  user     User   @relation(fields: [userId], references: [id])
+  avatarUrl String?
+  bio       String?
+  homeLat   Float?
+  homeLng   Float?
+}
+
+model Business {
+  id       String  @id @default(cuid())
+  ownerId  String
+  owner    User    @relation(fields: [ownerId], references: [id])
+  name     String
+  address  String
+  lat      Float
+  lng      Float
+  verified Boolean @default(false)
+  events   Event[]
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  createdById String
+  createdBy   User     @relation("EventCreator", fields: [createdById], references: [id])
+  businessId  String?
+  business    Business? @relation(fields: [businessId], references: [id])
+  title       String
+  description String    @default("")
+  category    String
+  address     String
+  lat         Float
+  lng         Float
+  startsAt    DateTime
+  endsAt      DateTime
+  coverUrl    String?
+  isPrivate   Boolean   @default(false)
+  visibility  EventVisibility @default(PUBLIC)
+  is18Plus    Boolean   @default(false)
+  is21Plus    Boolean   @default(false)
+  rsvps       RSVP[]
+  promotions  Promotion[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model RSVP {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  eventId   String
+  event     Event     @relation(fields: [eventId], references: [id])
+  status    RsvpStatus
+  createdAt DateTime  @default(now())
+
+  @@unique([userId, eventId])
+}
+
+model Promotion {
+  id          String      @id @default(cuid())
+  eventId     String
+  event       Event       @relation(fields: [eventId], references: [id])
+  startsAt    DateTime
+  endsAt      DateTime
+  radiusMi    Int
+  budgetCents Int         @default(0)
+  status      PromoStatus @default(ACTIVE)
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tier      SubTier
+  stripeId  String?
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// NextAuth models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
