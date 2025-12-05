@@ -3,11 +3,29 @@
 import { useEffect, useState } from "react"
 import EventCard from "@/components/EventCard"
 
+type NearbyEvent = {
+  id: string
+  title: string
+  category: string
+  address: string
+  startsAt: string
+  endsAt: string
+  distance_meters?: number
+  meters?: number
+  isBoosted?: boolean
+  isFriendHost?: boolean
+  friendGoingCount?: number
+  creatorUsername?: string | null
+  creatorName?: string | null
+  creatorEmail?: string | null
+  creatorId?: string
+}
+
 export default function HomePage() {
   const [lat, setLat] = useState<number | null>(28.5383) // Orlando default
   const [lng, setLng] = useState<number | null>(-81.3792)
   const [radius, setRadius] = useState<number>(5)
-  const [events, setEvents] = useState<any[]>([])
+  const [events, setEvents] = useState<NearbyEvent[]>([])
   const [loading, setLoading] = useState(false)
   const [statusMsg, setStatusMsg] = useState<string | null>(null)
   const [addressQuery, setAddressQuery] = useState("") // for step 2
@@ -64,7 +82,7 @@ export default function HomePage() {
     )
   }
 
-  // STEP 2 will go here (address search); we’ll fill below.
+  // STEP 2 will go here (address search); we'll fill below.
 
   async function setLocationFromAddress() {
     if (!addressQuery.trim()) {

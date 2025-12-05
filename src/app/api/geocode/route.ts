@@ -26,7 +26,7 @@ export async function GET(req: Request) {
       lng: result.lng,
       label: address,
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Geocode error:", err)
     return NextResponse.json(
       { error: "Geocoding service error" },

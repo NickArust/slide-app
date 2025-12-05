@@ -24,7 +24,7 @@ export default function LeafletMapCore({
   events,
 }: {
   center: { lat: number; lng: number }
-  events: any[]
+  events: Array<{ id: string; lat: number; lng: number; title: string }>
 }) {
   return (
     <MapContainer

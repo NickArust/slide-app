@@ -10,10 +10,11 @@ async function main() {
   // Create a promoter user
   const promoter = await prisma.user.upsert({
     where: { email: "promoter@example.com" },
-    update: { role: "PROMOTER" },
+    update: { role: "PROMOTER", username: "promoter" },
     create: {
       email: "promoter@example.com",
       name: "Blue Bar Promoter",
+      username: "promoter",
       role: UserRole.PROMOTER,
       profile: { create: {} }
     }
@@ -61,10 +62,11 @@ async function main() {
   // A seeker user with an RSVP
   const seeker = await prisma.user.upsert({
     where: { email: "seeker@example.com" },
-    update: {},
+    update: { username: "seeker" },
     create: {
       email: "seeker@example.com",
       name: "Curious Seeker",
+      username: "seeker",
       profile: { create: { homeLat: orlando.lat, homeLng: orlando.lng } }
     }
   })

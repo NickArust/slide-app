@@ -14,6 +14,14 @@ type EventWithMeters = {
   startsAt: string
   endsAt: string
   meters?: number
+  distance_meters?: number
+  friendGoingCount?: number
+  isBoosted?: boolean
+  isFriendHost?: boolean
+  creatorUsername?: string | null
+  creatorName?: string | null
+  creatorEmail?: string | null
+  creatorId?: string
 }
 
 export default function HomePage() {
@@ -28,11 +36,12 @@ export default function HomePage() {
 
   async function load() {
     if (lat == null || lng == null) return
+    const radiusMi = Math.max(1, Math.min(radius, 100))
     setLoading(true)
     setStatusMsg(null)
     try {
       const r = await fetch(
-        `/api/events/nearby?lat=${lat}&lng=${lng}&radiusMi=${radius}`
+        `/api/events/nearby?lat=${lat}&lng=${lng}&radiusMi=${radiusMi}`
       )
       const j = await r.json()
       const evs = (j.events ?? []) as EventWithMeters[]

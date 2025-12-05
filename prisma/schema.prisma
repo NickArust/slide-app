@@ -43,6 +43,7 @@ model User {
   createdAt     DateTime    @default(now())
   email         String      @unique
   name          String?
+  username      String?     @unique
   role          UserRole    @default(USER)
   profile       Profile?
   events        Event[]     @relation("EventCreator")
@@ -50,7 +51,13 @@ model User {
   subscriptions Subscription[]
   accounts      Account[]
   sessions      Session[]
-  buisnesses	Business[]
+  businesses Business[]
+  friends     Friendship[] @relation("UserFriends")
+  friendedBy  Friendship[] @relation("UserFriendedBy")
+  image         String?  
+  emailVerified DateTime?
+
+
 }
 
 model Profile {
@@ -166,4 +173,18 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userId    String
+  friendId  String
+  createdAt DateTime @default(now())
+
+  user   User @relation("UserFriends", fields: [userId], references: [id])
+  friend User @relation("UserFriendedBy", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
 }

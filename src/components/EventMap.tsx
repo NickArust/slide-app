@@ -7,6 +7,11 @@ const LeafletMap = dynamic(() => import("./LeafletMapCore"), {
   ssr: false,
 })
 
-export default function EventMap(props: any) {
+type EventMapProps = {
+  center: { lat: number; lng: number }
+  events: Array<{ id: string; lat: number; lng: number; title: string }>
+}
+
+export default function EventMap(props: EventMapProps) {
   return <LeafletMap {...props} />
 }
